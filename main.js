@@ -34,7 +34,9 @@ const getAllCustomers = () => {
 // get pending documents
 const getPendingDocuments = () => {
     return new Promise((resolve, reject) => {
-        sql.query(`SELECT entidadesmovimentos.*, DATE_FORMAT(entidadesmovimentos.DATACRIACAO,"%Y-%m-%d") as data_criacao, TIME_FORMAT(entidadesmovimentos.HORACRIACAO,"%H:%i:%s")  AS hora_criacao
+        sql.query(`SELECT entidadesmovimentos.*,
+                          DATE_FORMAT(entidadesmovimentos.DATACRIACAO, "%Y-%m-%d") as data_criacao,
+                          TIME_FORMAT(entidadesmovimentos.HORACRIACAO, "%H:%i:%s") AS hora_criacao
                    FROM entidadesmovimentos
                    WHERE entidadesmovimentos.VALORPENDENTE <> 0`, (err, res) => {
             if (!err) {
@@ -112,19 +114,29 @@ const createCustomerGoldylocks = (customerData, callback) => {
 const createPendingDocumentGoldylocks = (documentData, callback) => {
 
     getCustomerDataByVAT(documentData.NIF, glCustomerData => {
-        console.log({
-            idcliente: glCustomerData.id,
-            inp_referencia: documentData.KEY,
-            tipo_documento: configuration.ledger_document_type_id,
-            inp_data_documento: `${documentData.data_criacao} ${documentData.hora_criacao}`
-        });
+        // create document
         gl.request("criardocumento", {}, {
-            idcliente: glCustomerData.id,
             inp_referencia: documentData.KEY,
             tipo_documento: configuration.ledger_document_type_id,
             inp_data_documento: `${documentData.data_criacao} ${documentData.hora_criacao}`
         }, newDocumentID => {
-            console.log(newDocumentID);
+            // change new document customer data
+            gl.request("alterarclientedocumento", {
+                p: newDocumentID,
+            }, {
+                id: glCustomerData.id,
+                nif: glCustomerData.nif,
+                nome: glCustomerData.nome,
+                morada: glCustomerData.morada,
+                morada2: '',
+                cp: glCustomerData.cp,
+                pais: glCustomerData.pais,
+                codigo_pais: glCustomerData.codigo_pais,
+                telemovel: '',
+                telefone: ''
+            }, res => {
+                console.log(res);
+            });
         });
     });
 }
@@ -136,7 +148,6 @@ const createPendingDocumentGoldylocks = (documentData, callback) => {
  */
 const getCustomerDataByVAT = (customerVAT, callback) => {
     gl.request("clientes", {
-        "minimal": "1",
         "p": customerVAT
     }, {}, customerData => {
         if (callback && customerData.length > 0) {
