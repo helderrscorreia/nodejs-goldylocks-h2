@@ -49,6 +49,19 @@ const getPendingDocuments = () => {
 }
 
 /**
+ * get document lines
+ * @param documentID
+ * @param callback
+ */
+const getDocumentLines = (documentID, callback) => {
+    sql.query(`SELECT *
+            FROM entidadesdocumentoslinhas
+            WHERE entidadesdocumentoslinhas.DOCUMENTO = '${documentID}'`, (err, res) => {
+        if (callback) callback(res);
+    });
+}
+
+/**
  * process data array throug async iteration
  * @type {{processFunction: null, process: process, data: [], start: start, callback: null}}
  */
@@ -82,6 +95,38 @@ let processData = {
         }
     }
 }
+let processData2 = {
+    data: [],
+    extra: null,
+    processFunction: null,
+    callback: null,
+
+    // setup and start data processing
+    start: (data, extra, processFunction, callback) => {
+        processData2.callback = callback;
+        processData2.data = data;
+        processData2.extra = extra;
+        processData2.processFunction = processFunction;
+        processData2.process();
+    },
+    process: () => {
+        if (processData2.data.length > 0) {
+            // get first data position
+            let data = processData2.data[0];
+
+            // clear read data in the array
+            processData2.data.shift();
+
+            // process each item
+            processData2.processFunction(data, processData2.extra, () => {
+                processData2.process();
+            });
+        } else {
+            // data array is empty, its time to callback
+            if (processData2.callback) processData2.callback();
+        }
+    }
+}
 
 /**
  * create customer at Goldylocks
@@ -105,6 +150,35 @@ const createCustomerGoldylocks = (customerData, callback) => {
         telemovel: customerData.TELEMOVEL
     }, callback);
 }
+
+/**
+ * insert line into ledger document
+ * @param ledgerLineData
+ * @param newDocumentID
+ * @param callback
+ */
+const createLedgerLine = (ledgerLineData, newDocumentID, callback) => {
+
+    // if its a credit the price goes below zero
+    let linePrice = ledgerLineData.PRECO;
+    if (ledgerLineData.DOCUMENTO.indexOf('CNC') !== -1) {
+        linePrice = linePrice*-1;
+    }
+
+    // insert line
+    gl.request("inserirlinha", {}, {
+        id_documento: newDocumentID,
+        id_artigo: "SALDO",
+        linha: 1,
+        imposto: configuration.ledger_document_default_tax,
+        taxa: configuration.ledger_document_default_tax_rate,
+        quantidade: ledgerLineData.QUANTIDADE,
+        preco: linePrice,
+        preco_custo: 0,
+        desconto: 0,
+        descricao: ledgerLineData.DESCRICAO
+    }, callback);
+};
 
 /**
  * create Goldylocks ledger document
@@ -135,11 +209,32 @@ const createPendingDocumentGoldylocks = (documentData, callback) => {
                 telemovel: '',
                 telefone: ''
             }, res => {
-                console.log(res);
+                // insert line into new document
+                getDocumentLines(documentData.KEY, documentLines => {
+                    console.log(`Creating document ${documentData.KEY}...`);
+                    // insert ledger lines
+                    processData2.start(documentLines, newDocumentID, createLedgerLine, () => {
+                        // after lines inserted terminate document
+                        closeGoldylocksDocument(newDocumentID, () => {
+                            if (callback) callback();
+                        });
+                    });
+                });
             });
         });
     });
 }
+
+/**
+ * close Goldylocks document
+ * @param glDocumentID
+ * @param callback
+ */
+const closeGoldylocksDocument = (glDocumentID, callback) => {
+    gl.request("fechardocumento", {
+        p: glDocumentID
+    }, {}, callback);
+};
 
 /**
  * search Goldylocks customer data using VAT number
@@ -195,7 +290,7 @@ const processPendingDocuments = (callback) => {
     }
 }
 
-// main
+// MAIN
 processCustomers(() => {
     processPendingDocuments(() => {
         sql.end();
