@@ -1,0 +1,30 @@
+{
+  "name": "nodejs-goldylocks-h2",
+  "version": "1.0.0",
+  "description": "H2 to Goldylocks database converter.",
+  "main": "main.js",
+  "dependencies": {
+    "goldylocks": "^1.0.1",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/helderrscorreia/nodejs-goldylocks-h2.git"
+  },
+  "keywords": [
+    "goldylocks",
+    "invoicing",
+    "api"
+  ],
+  "author": "Hélder Correia <helderrscorreia@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/helderrscorreia/nodejs-goldylocks-h2/issues"
+  },
+  "homepage": "https://github.com/helderrscorreia/nodejs-goldylocks-h2#readme"
+}
