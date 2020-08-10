@@ -4,7 +4,7 @@
   "description": "H2 to Goldylocks database converter.",
   "main": "main.js",
   "dependencies": {
-    "goldylocks": "^1.0.1",
+    "goldylocks": "^1.0.2",
     "mysql": "^2.18.1"
   },
   "devDependencies": {},

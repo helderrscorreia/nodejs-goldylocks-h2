@@ -1,0 +1,12 @@
+{
+  "goldylocks_alias": "empresademonstrativa",
+  "goldylocks_api_key": "57b16c9ff6a18241f5aea066d3955c972e27ed48",
+  "h2_database_host": "localhost",
+  "h2_database_username": "root",
+  "h2_database_name": "colibri_clinica_medica_viana",
+  "h2_datapase_password": "",
+  "import_customers": false,
+  "import_items": true,
+  "import_ledgers": true,
+  "ledger_document_type_id": 108
+}
