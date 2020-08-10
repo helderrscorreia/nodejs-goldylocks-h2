@@ -6,11 +6,18 @@ The H2 database must first be converted to MySQL/MariaDB with a tool like [Razor
 
 Next configure the `config.json` file at the root path with the [Goldylocks](https://www.goldylocks.pt/) *alias*, *API* key and the destination mysql server to where you converted the H2 database:
 ```javascript
+{
   "goldylocks_alias": "",
   "goldylocks_api_key": "",
   "h2_database_host": "localhost",
   "h2_database_username": "root",
   "h2_database_name": "",
-  "h2_datapase_password": ""
+  "h2_datapase_password": "",
+  "import_customers": true,
+  "import_items": true,
+  "import_ledgers": true,
+  "ledger_document_type_id": 108,
+  "ledger_document_default_tax": "Isento",
+  "ledger_document_default_tax_rate": 0
 }
 ```
