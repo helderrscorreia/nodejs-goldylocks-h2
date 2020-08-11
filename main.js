@@ -295,6 +295,4 @@ processCustomers(() => {
     processPendingDocuments(() => {
         sql.end();
     })
-})
-
-
+});
